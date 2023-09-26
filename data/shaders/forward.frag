@@ -37,6 +37,11 @@ struct DirLight {
     float cascadeDistances[3];
 };
 
+struct ColorSrc {
+    vec3 position;
+    float radius;
+}
+
 //layout (std140) uniform LightSpaceMatrices {
 //    mat4 lightSpaceMatrices[4];
 //};
@@ -55,6 +60,9 @@ uniform DirLight dirLight;
 uniform vec3 camPos;
 uniform sampler2DArray shadowDepth;
 uniform mat4 lightSpaceMatrices[4];
+
+uniform ColorSrc colorSources[5];
+uniform int numColorSources;
 
 const float PI = 3.14159265359;
 const float PositiveExponent = 40.0;
@@ -209,11 +217,14 @@ void main() {
 
     FragOut = color;
 
-    // TODO: temporary, mock position and radius of color source
-    vec3 srcPos = vec3(0, 0.5, 1.2);
-    float srcR = 100;
-    float distToSrc = distance(srcPos, FragPos);
-    float satFactor = clamp(inverseLerp(distToSrc, srcR + 0.5, srcR), 0, 1);
+    float satFactor = 0.0;
+    for (int i = 0; i < numColorSources; i++) {
+        ColorSrcPos = colorSources[i].position;
+        ColorSrcRad = colorSources[i].radius;
+        float distToSrc = distance(ColorSrcPos, FragPos);
+        // is inverselerp with rad +0.5, rad gonna work?
+        satFactor = clamp(inverseLerp(distToSrc, ColorSrcRad + 0.5, ColorSrcRad), satFactor, 1);
+    }
     SaturationOut = vec3(satFactor);
 }
 
